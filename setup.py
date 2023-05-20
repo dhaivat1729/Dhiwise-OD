@@ -12,10 +12,4 @@ setup(
     author='Dhaivat Bhatt',
     author_email='dhaivat1994@gmail.com',
     packages=['DWODLib'],
-    install_requires=['fiftyone',
-                      'pillow',
-                      'detectron2',
-                      'torch',
-                      'tqdm',
-                      'ipdb',],        
     python_requires='>=3.6',)
