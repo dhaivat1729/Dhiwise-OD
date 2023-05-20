@@ -59,7 +59,7 @@ def save_command(filename):
 
 ## build python command to reproduce results
 def build_command(script, config, filepath):
-    command = f"python3 {script} --options " + ' '.join([f'"--{key}" "{value}"' for key, value in config.items()]) + '\n'
+    command = f"python3 {script} --options " + ' '.join([f"""--{key} "{value}" """ for key, value in config.items()]) + '\n'
     write_text(command, filepath)
 
 ## read text
