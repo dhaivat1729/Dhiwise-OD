@@ -11,6 +11,6 @@ class ConfigDict(dict):
         for key, value in new_config_dict.items():
             ## if key not in config file, raise error
             if key not in self.keys():
-                raise KeyError(f"Key {key} not in config file!")
+                raise KeyError(f"Key {key} not found in config file!")
             else:
                 self[key] = value
