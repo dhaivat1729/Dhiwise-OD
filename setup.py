@@ -14,6 +14,8 @@ setup(
     packages=['DWODLib'],
     install_requires=['fiftyone',
                       'pillow',
+                      'detectron2',
+                      'torch',
                       'tqdm',
                       'ipdb',],        
     python_requires='>=3.6',)
