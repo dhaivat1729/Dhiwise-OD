@@ -6,10 +6,9 @@ import os
 from tqdm import tqdm
 from DWODLib.config import defaultCfg, ConfigDict
 from detectron2.data import DatasetCatalog, MetadataCatalog
-
+from detectron2.structures import BoxMode
 from DWODLib.utils import (isfile, 
-                                load_json, 
-                                save_json,)
+                        load_json,)
 
 import fiftyone.utils.random as four
 
@@ -21,26 +20,29 @@ def get_dataset_fiftyone(config):
     baseDir = defaultCfg['dataDir']
     annotationFile = os.path.join(baseDir, defaultCfg['annotationFile'])
     imageDir = os.path.join(baseDir, defaultCfg['imageDir'])
-
-    ## loading annotations
+    
+    ## loading annotations  
     data = load_json(annotationFile) ## this is a list of images
-
     samples = []
-
+    class2Id = set() ## set
+    
     ## let's put data in fiftyone format
     for image in tqdm(data):
-        fileName = os.path.join(imageDir, image['screenName'])
 
-        if isfile(fileName):
+        ## path of the image
+        filePath = os.path.join(imageDir, image['screenName'])
 
+        ## If image is a file, then only we register its annotations
+        if isfile(filePath):
+                
             ## create fiftyone  sample for this image
-            sample = fo.Sample(filepath=fileName)
+            sample = fo.Sample(filepath=filePath)
 
             ## get image class
             sample['class'] = image['class']
 
             ## load file anmd get size
-            img = Image.open(fileName)
+            img = Image.open(filePath)
             width, height = img.size
 
             ## storing sample size
@@ -58,6 +60,8 @@ def get_dataset_fiftyone(config):
                 bbox['width'] = bbox['width'] / width
                 bbox['height'] = bbox['height'] / height
                 
+                ## if class is not in class2Id, then add it
+                class2Id.add(bbox['type'])
 
                 ## building fiftyone detection
                 detection = fo.Detection(label=bbox['type'], bounding_box=[bbox['x'], bbox['y'], bbox['width'], bbox['height']])
@@ -67,10 +71,14 @@ def get_dataset_fiftyone(config):
             sample['ground_truth'] = fo.Detections(detections=detections)
             samples.append(sample)
 
-        dataset = fo.Dataset("Dhiwise object detection")
-        dataset.add_samples(samples)
+    dataset = fo.Dataset("Dhiwise object detection")
+    dataset.add_samples(samples)
 
-        return dataset
+    ## class2ID must be in sorted order
+    class2Id = sorted(list(class2Id))
+    class2Id = {class2Id[i]:i for i in range(len(class2Id))} ## this ensures reproducibility when we go in any order
+
+    return dataset, class2Id
     
 
 def split_fiftyone_dataset(dataset : fo.Dataset, config : ConfigDict):
@@ -82,12 +90,47 @@ def split_fiftyone_dataset(dataset : fo.Dataset, config : ConfigDict):
     return dataset
 
 
-def get_fiftyone_dicts(dataset):
-    for sample in samples:
-        pass
+def get_fiftyone_dicts(samples, class2Id):
+    """
+        Convert fiftyone samples to detectron2 format
+    """
+    
+    samples.compute_metadata()
 
-def convert_fo_to_detectron2(dataset):
+    ## let's iterate through samples
+    dataset_dicts = []
+    for sample in samples:
+        
+        ## getting metadata for detectron2
+        height = sample.metadata["height"]
+        width = sample.metadata["width"]
+        record = {}
+        record["file_name"] = sample.filepath
+        record["image_id"] = sample.id
+        record["height"] = height
+        record["width"] = width
+      
+        objs = []
+        ## iterating through all object and registering them 
+        for det in sample.ground_truth.detections:
+            tlx, tly, w, h = det.bounding_box
+            ## fiftyone has detections between [0,1]
+            bbox = [int(tlx*width), int(tly*height), int(w*width), int(h*height)]
+            ## Object details
+            obj = {
+                "bbox": bbox,
+                "bbox_mode": BoxMode.XYWH_ABS,
+                "category_id": class2Id[det.label],
+            }
+            objs.append(obj)
+
+        record["annotations"] = objs
+        dataset_dicts.append(record)
+    
+    return dataset_dicts
+
+def convert_fo_to_detectron2(dataset, class2Id):
     for d in ["train", "val"]:
         view = dataset.match_tags(d)
-        DatasetCatalog.register("fiftyone_" + d, lambda view=view: get_fiftyone_dicts(view))
-        MetadataCatalog.get("fiftyone_" + d).set(thing_classes=["vehicle_registration_plate"])
+        DatasetCatalog.register("fiftyone_" + d, lambda view=view: get_fiftyone_dicts(view, class2Id))
+        MetadataCatalog.get("fiftyone_" + d).set(thing_classes=[key for key in class2Id.keys()])
