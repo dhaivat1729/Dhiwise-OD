@@ -21,9 +21,11 @@ from DWODLib.utils import (get_args,
                         save_command, 
                         build_command,
                         isdir,
-                        isfile,)
+                        isfile,
+                        build_detectron2_config)
 
-from DWODLib.dataset import get_dataset_fiftyone, split_fiftyone_dataset
+from DWODLib.dataset import get_dataset_fiftyone, split_fiftyone_dataset, convert_fo_to_detectron2
+from DWODLib.engine import Trainer
 
 ## get arguments
 args = get_args()
@@ -40,16 +42,32 @@ if isdir(args['outputDir']):
 config.update(args)
 
 ## make output directory
-make_dir(config.OUTPUT_DIR)
+make_dir(config['outputDir'])
 
 ## save python command to reproduce results
-save_command(os.path.join(config.OUTPUT_DIR, 'command.txt'))
+save_command(os.path.join(config['outputDir'], 'command.txt'))
 
 ## build python command to reproduce results
-build_command('tools/train.py', config, os.path.join(config.OUTPUT_DIR, 'defaultCommand.sh'))
+build_command('tools/train.py', config, os.path.join(config['outputDir'], 'defaultCommand.sh'))
 
 ## Build dataset in fiftyone format
-dataset = get_dataset_fiftyone(config)
+dataset, class2Id = get_dataset_fiftyone(config)
+config['num_classes'] = len(class2Id)
+save_json(class2Id, os.path.join(config['outputDir'], 'class2Id.json')) ## save mapping from class to id
 
 ## Split dataset
 dataset = split_fiftyone_dataset(dataset, config)
+convert_fo_to_detectron2(dataset, class2Id)
+
+## Build model
+det2Config = build_detectron2_config(config)
+
+## save our config
+save_json(config, os.path.join(config['outputDir'], 'experiment_config.json'))
+
+## Trainer object
+trainer = Trainer(det2Config)
+
+## train the model
+trainer.dt.resume_or_load(resume=False)
+trainer.dt.train()
