@@ -14,3 +14,5 @@ from .utils import (load_json,
                     )
 
 from .arguments import get_args
+
+from .build_config import build_detectron2_config
