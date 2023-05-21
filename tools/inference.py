@@ -52,9 +52,9 @@ predictor = Predictor(det2Config)
 from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 from detectron2.data import build_detection_test_loader
 
-# evaluator = COCOEvaluator(testDataset, output_dir=config['outputDir'])
-# val_loader = build_detection_test_loader(det2Config, testDataset)
-# print(inference_on_dataset(predictor.dp.model, val_loader, evaluator))
+evaluator = COCOEvaluator(testDataset, output_dir=config['outputDir'])
+val_loader = build_detection_test_loader(det2Config, testDataset)
+print(inference_on_dataset(predictor.dp.model, val_loader, evaluator))
 
 ## Run inference
 val_view = dataset.match_tags("val")

@@ -86,7 +86,7 @@ def split_fiftyone_dataset(dataset : fo.Dataset, config : ConfigDict):
     ## Divide dataset into train and validation
     trainPartition, valPartition = config['trainPartition'], config['valPartition']
     
-    four.random_split(dataset, {"train": trainPartition, "val": valPartition}) 
+    four.random_split(dataset, {"train": trainPartition, "val": valPartition}, seed=config['seed']) 
     return dataset
 
 
