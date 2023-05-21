@@ -17,11 +17,9 @@ from DWODLib.config import defaultCfg as config
 from DWODLib.utils import (get_args, 
                         make_dir, 
                         save_json, 
-                        load_json,
                         save_command, 
                         build_command,
                         isdir,
-                        isfile,
                         build_detectron2_config)
 
 from DWODLib.dataset import get_dataset_fiftyone, split_fiftyone_dataset, convert_fo_to_detectron2
@@ -66,7 +64,7 @@ det2Config = build_detectron2_config(config)
 save_json(config, os.path.join(config['outputDir'], 'experiment_config.json'))
 
 ## Trainer object
-trainer = Trainer(det2Config)
+trainer = Trainer(det2Config, experiment_config=config)
 
 ## train the model
 trainer.dt.resume_or_load(resume=False)
