@@ -1,1 +1,1 @@
-from .engine import Trainer
+from .engine import Trainer, Predictor
