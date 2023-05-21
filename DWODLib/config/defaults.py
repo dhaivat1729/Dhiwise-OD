@@ -14,6 +14,8 @@ defaultCfg = {
     'seed':42, ## for reproducibility
     'trainPartition':0.8, ## 80% of data for training
     'valPartition':0.2, ## 20% of data for validation
+    'freeze_RPN':False, ## freeze RPN weights
+    'freeze_backbone':False, ## freeze backbone weights
 }
 
 defaultCfg = ConfigDict(defaultCfg)
