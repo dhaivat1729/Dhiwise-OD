@@ -7,6 +7,7 @@ def build_detectron2_config(experiment_config):
     """
         Build detectron2 config from our config file
     """
+
     det2_cfgFile = experiment_config['detectorName']
     cfg = get_cfg()
     cfg.merge_from_file(model_zoo.get_config_file(det2_cfgFile))
@@ -23,5 +24,4 @@ def build_detectron2_config(experiment_config):
     cfg.SEED = experiment_config['seed'] ## set seed for reproducibility
     cfg.OUTPUT_DIR = experiment_config['outputDir']
 
-    cfg.freeze()
     return cfg
