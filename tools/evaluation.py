@@ -1,5 +1,5 @@
 """
-   Inference on a dataset using a trained model 
+   Evaluation on a dataset using a trained model 
 """
 
 
@@ -20,7 +20,7 @@ from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 from detectron2.data import build_detection_test_loader
 import fiftyone as fo
 
-## usage python3 tools/inference.py --options --outputDir 'experiments/R50_fasterRCNNv3/' --testScoreThresh "0.7" --dataSplit "val"
+## usage python3 tools/evaluation.py --options --outputDir 'experiments/R50_fasterRCNNv3/' --testScoreThresh "0.7" --dataSplit "val"
 
 ## get arguments
 args = get_args()
