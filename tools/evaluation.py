@@ -16,9 +16,11 @@ from DWODLib.utils import (get_args,
 from DWODLib.dataset import get_dataset_fiftyone, split_fiftyone_dataset, convert_fo_to_detectron2, get_fiftyone_dicts, convert_detectron2_to_fo
 from DWODLib.engine import Predictor
 import cv2
-## get detectron2 metadata
-from detectron2.data import MetadataCatalog, DatasetCatalog
+from detectron2.evaluation import COCOEvaluator, inference_on_dataset
+from detectron2.data import build_detection_test_loader
 import fiftyone as fo
+
+## usage python3 tools/inference.py --options --outputDir 'experiments/R50_fasterRCNNv3/' --testScoreThresh "0.7" --dataSplit "val"
 
 ## get arguments
 args = get_args()
@@ -45,20 +47,24 @@ det2Config.MODEL.ROI_HEADS.SCORE_THRESH_TEST = args['testScoreThresh']  if 'test
 trainDatasetName = det2Config.DATASETS.TRAIN[0]
 testDataset = trainDatasetName.replace("train", "val")
 
+## type of dataset to see results on
+datasetType = args['dataSplit'] if 'dataSplit' in args else 'val'
+assert datasetType in ['train', 'val'], "Dataset type has to be one of train or val."
+
 ## Predictor object
 predictor = Predictor(det2Config)
 
-## run evaluation
-from detectron2.evaluation import COCOEvaluator, inference_on_dataset
-from detectron2.data import build_detection_test_loader
+## eval dataset
+eval_dataset = trainDatasetName if datasetType == 'train' else testDataset
 
-evaluator = COCOEvaluator(testDataset, output_dir=config['outputDir'])
-val_loader = build_detection_test_loader(det2Config, testDataset)
+## run evaluation
+evaluator = COCOEvaluator(eval_dataset, output_dir=config['outputDir'])
+val_loader = build_detection_test_loader(det2Config, eval_dataset)
 print(inference_on_dataset(predictor.dp.model, val_loader, evaluator))
 
 ## Run inference
-val_view = dataset.match_tags("val")
-dataset_dicts = get_fiftyone_dicts(val_view, class2Id)
+ds_view = dataset.match_tags(datasetType)
+dataset_dicts = get_fiftyone_dicts(ds_view, class2Id)
 predictions = {}
 for d in tqdm(dataset_dicts):
     img_w = d["width"]
