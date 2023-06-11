@@ -16,6 +16,7 @@ defaultCfg = {
     'valPartition':0.2, ## 20% of data for validation
     'freeze_RPN':False, ## freeze RPN weights
     'freeze_backbone':False, ## freeze backbone weights
+    'save_after_steps':100, ## save model after every 100 steps
 }
 
 defaultCfg = ConfigDict(defaultCfg)

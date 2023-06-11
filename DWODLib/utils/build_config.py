@@ -23,5 +23,6 @@ def build_detectron2_config(experiment_config):
     cfg.MODEL.ROI_HEADS.NUM_CLASSES =  experiment_config['num_classes'] # only has one class (Vehicle registration plate). (see https://detectron2.readthedocs.io/tutorials/datasets.html#update-the-config-for-new-datasets)
     cfg.SEED = experiment_config['seed'] ## set seed for reproducibility
     cfg.OUTPUT_DIR = experiment_config['outputDir']
+    cfg.SOLVER.CHECKPOINT_PERIOD = experiment_config['save_after_steps']
 
     return cfg
