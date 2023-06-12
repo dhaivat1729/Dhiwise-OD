@@ -62,6 +62,10 @@ evaluator = COCOEvaluator(eval_dataset, output_dir=config['outputDir'])
 val_loader = build_detection_test_loader(det2Config, eval_dataset)
 print(inference_on_dataset(predictor.dp.model, val_loader, evaluator))
 
+## remove files created for evaluation
+os.remove(os.path.join(config['outputDir'], 'coco_instances_results.json'))
+os.remove(os.path.join(config['outputDir'], 'instances_predictions.pth'))
+
 ## Run inference
 ds_view = dataset.match_tags(datasetType)
 dataset_dicts = get_fiftyone_dicts(ds_view, class2Id)
