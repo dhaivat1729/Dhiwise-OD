@@ -24,5 +24,6 @@ def build_detectron2_config(experiment_config):
     cfg.SEED = experiment_config['seed'] ## set seed for reproducibility
     cfg.OUTPUT_DIR = experiment_config['outputDir']
     cfg.SOLVER.CHECKPOINT_PERIOD = experiment_config['save_after_steps']
+    cfg.MODEL.ROI_HEADS.BBOX_REG_LOSS_TYPE = experiment_config['bbox_loss']
 
     return cfg

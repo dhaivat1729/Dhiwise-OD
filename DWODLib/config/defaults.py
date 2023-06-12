@@ -17,6 +17,7 @@ defaultCfg = {
     'freeze_RPN':False, ## freeze RPN weights
     'freeze_backbone':False, ## freeze backbone weights
     'save_after_steps':100, ## save model after every 100 steps
+    'bbox_loss' : 'smooth_l1' ## smooth_l1, giou, diou, ciou
 }
 
 defaultCfg = ConfigDict(defaultCfg)
