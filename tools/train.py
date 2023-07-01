@@ -94,9 +94,7 @@ from DWODLib.engine import Predictor
 eval_dataset = det2Config.DATASETS.TRAIN[0].replace('train', 'val')
 
 ## best metric
-bestMetric = float('-inf')
-bestModel = None
-
+modelMetrics = dict()
 ## evaluate model for each checkpoint
 for model in modelList:
     det2Config.MODEL.WEIGHTS = os.path.join(config['outputDir'], model) ## model weights
@@ -104,14 +102,19 @@ for model in modelList:
     evaluator = COCOEvaluator(eval_dataset, output_dir=config['outputDir'])
     val_loader = build_detection_test_loader(det2Config, eval_dataset)
     currentmAP = inference_on_dataset(predictor.dp.model, val_loader, evaluator)['bbox']['AP']
-    if currentmAP > bestMetric or bestModel is None:
-        bestMetric = currentmAP
-        bestModel = model
-
+    modelMetrics[model] = currentmAP
     ## remove files created by evaluator
     os.remove(os.path.join(config['outputDir'], 'coco_instances_results.json'))
     os.remove(os.path.join(config['outputDir'], 'instances_predictions.pth'))
-    
+
+bestModel = None
+bestMetric = float('-inf')
+## find best model from modelMetrics
+for model in modelMetrics:
+    if modelMetrics[model] > bestMetric:
+        bestModel = model
+        bestMetric = modelMetrics[model]
+
 ## delete all models which are not best on validation set
 for model in modelList:
     if model != bestModel:
