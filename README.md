@@ -75,7 +75,7 @@ Training the model is a single line command. This codebase is built on top of de
 If you want to train an object detection model with resnet 50, you can run the following command. 
 
 ```python
-python3 tools/train.py --options --outputDir "path/to/experiment/directory" --dataDir "/path/to/dataset" --batchSize 4 --numSteps 45000 --save_after_steps 1500 --bbox_loss "giou" --annotationFile "annotations.json" --detectorName "COCO-Detection/COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml"
+python3 tools/train.py --options --outputDir "path/to/experiment/directory" --dataDir "/path/to/dataset" --batchSize 4 --numSteps 45000 --save_after_steps 1500 --bbox_loss "giou" --annotationFile "annotations.json" --detectorName "COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml"
 ```
 
 In the above command, outputDir is created during training. So it need not exist before training. If that directory already exists, you will be prompted to delete it before prroceeding with training.
