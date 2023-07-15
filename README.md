@@ -17,10 +17,11 @@ Installation script is provided to install all the dependencies. It will create 
 ```bash
 chmod +x setup.sh
 ./setup.sh
+source DhiwiseOD/bin/activate
 ```
 
 ## Directory Structure
-Dataset directoru should be in the following format:
+Dataset directory should be in the following format:
 
 ```
 /path/to/dataset
@@ -69,10 +70,18 @@ annotations.json should be in the following json format.
 ```
 
 ## Training
-Training the model is a single line command. This codebase is built on top of detectron2. So, all the options available in detectron2 are available here too. check `/DWODLib/config/defaults.py` to understand configuration options. 
-
+Training the model is a single line command. This codebase is built on top of detectron2. So, all the options available in detectron2 are available here too. check `/DWODLib/config/defaults.py` to understand configuration options. This code automatically does train time validation, splits data into train/val sets and saves the model with best validation score.
 
 If you want to train an object detection model with resnet 50, you can run the following command. 
+
+First move to the root directory of the project and activate the virtual environment. 
+
+```bash
+cd Dhiwise-OD
+source DhiwiseOD/bin/activate
+```
+
+Then run the following command.
 
 ```python
 python3 tools/train.py --options --outputDir "path/to/experiment/directory" --dataDir "/path/to/dataset" --batchSize 4 --numSteps 45000 --save_after_steps 1500 --bbox_loss "giou" --annotationFile "annotations.json" --detectorName "COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml"
@@ -84,6 +93,14 @@ Other options can be configured through command line arguments. For example, if 
 ## Evaluation
 Evaluation script is provided to evaluate the model on the validation set. 
 
+First move to the root directory of the project and activate the virtual environment. 
+
+```bash
+cd Dhiwise-OD
+source DhiwiseOD/bin/activate
+```
+Now launch the command below to run evaluation on the validation set.
+
 ```python
 python3 tools/evaluation.py --options --outputDir '/path/to/experiment/directory' --dataSplit "val" --testScoreThresh 0.03
 ```
@@ -92,7 +109,16 @@ Through this script, you can run evaluation on train/validation scripts. Evaluat
 ## Inference
 Requirement: Images you want to run inference on should be located in a particular directory. Path to where images should be stored should be provided too, the script will automatically create that new directory if it doesn't exist. 
 
+First move to the root directory of the project and activate the virtual environment. 
+
+```bash
+cd Dhiwise-OD
+source DhiwiseOD/bin/activate
+```
+
+Now launch the command below to run inference on the images in the directory.
+
 ```python
-python3 tools/inference.py --options --inputImagesDir '/path/to/input/images' --modelPathDirectory '/path/to/experiment/directory' --outputImageDir '/path/to/output/images'
+python3 tools/inference.py --options --inputImagesDir '/path/to/input/images' --modelPathDirectory '/path/to/experiment/directory' --outputImageDir '/path/to/output/images' --visualize "True"
 ```
 
