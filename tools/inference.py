@@ -19,6 +19,7 @@ import cv2
 import glob
 from detectron2.data import MetadataCatalog
 from detectron2.utils.visualizer import Visualizer
+import fiftyone as fo
 
 ## usage: python3 tools/inference.py --options --inputImagesDir '/path/to/input/images' --modelPathDirectory '/path/to/model/directory' --outputImageDir '/path/to/output/images'
 
@@ -59,20 +60,32 @@ assert len(images) > 0, "No images found in the input directory!"
 ## set classes metadata
 MetadataCatalog.get(det2Config.DATASETS.TRAIN[0]).set(thing_classes=list(class2Id.keys()))
 
+## output images
+outputImages = []
+
 ## run inference on each image
 for image in tqdm(images):
-    imageName = os.path.basename(image) ## name of the image
-    img = cv2.imread(image) ## read image
+   imageName = os.path.basename(image) ## name of the image
+   img = cv2.imread(image) ## read image
 
-    ## output image path
-    outputImagePath = os.path.join(args['outputImageDir'], imageName)
+   ## output image path
+   outputImagePath = os.path.join(args['outputImageDir'], imageName)
 
-    ## run inference
-    outputs = predictor.dp(img)
+   ## run inference
+   outputs = predictor.dp(img)
 
-    ## visualize
-    v = Visualizer(img[:, :, ::-1], metadata=MetadataCatalog.get(det2Config.DATASETS.TRAIN[0]), scale=1.0)
-    v = v.draw_instance_predictions(outputs["instances"].to("cpu"))
+   ## visualize
+   v = Visualizer(img[:, :, ::-1], metadata=MetadataCatalog.get(det2Config.DATASETS.TRAIN[0]), scale=1.0)
+   v = v.draw_instance_predictions(outputs["instances"].to("cpu"))
 
-    ## save image
-    cv2.imwrite(outputImagePath, v.get_image()[:, :, ::-1])
+   ## save image
+   cv2.imwrite(outputImagePath, v.get_image()[:, :, ::-1])
+
+   ## output image
+   outputImages.append(fo.Sample(filepath=outputImagePath))
+
+## put output images in fiftyone for visualization
+dataset = fo.Dataset(samples=outputImages)
+session = fo.launch_app(dataset)
+session.wait()
+
