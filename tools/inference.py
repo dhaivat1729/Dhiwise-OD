@@ -21,7 +21,7 @@ from detectron2.data import MetadataCatalog
 from detectron2.utils.visualizer import Visualizer
 import fiftyone as fo
 
-## usage: python3 tools/inference.py --options --inputImagesDir '/path/to/input/images' --modelPathDirectory '/path/to/model/directory' --outputImageDir '/path/to/output/images'
+## usage: python3 tools/inference.py --options --inputImagesDir '/path/to/input/images' --modelPathDirectory '/path/to/model/directory' --outputImageDir '/path/to/output/images' --visualize "True"
 
 ## get arguments
 args = get_args()
@@ -84,8 +84,8 @@ for image in tqdm(images):
    ## output image
    outputImages.append(fo.Sample(filepath=outputImagePath))
 
-## put output images in fiftyone for visualization
-dataset = fo.Dataset(samples=outputImages)
-session = fo.launch_app(dataset)
-session.wait()
-
+if args['visualize']:
+   ## launch fiftyone app
+   dataset = fo.Dataset(samples=outputImages)
+   session = fo.launch_app(dataset)
+   session.wait()
