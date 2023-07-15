@@ -20,7 +20,7 @@ from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 from detectron2.data import build_detection_test_loader
 import fiftyone as fo
 
-## usage python3 tools/evaluation.py --options --outputDir 'experiments/R50_fasterRCNNv3/' --testScoreThresh "0.7" --dataSplit "val"
+## usage python3 tools/evaluation.py --options --outputDir 'experiments/R50_fasterRCNNv3/' --dataSplit "val" --testScoreThresh 0.03
 
 ## get arguments
 args = get_args()
@@ -41,7 +41,7 @@ convert_fo_to_detectron2(dataset, class2Id)
 ## Build model
 det2Config = build_detectron2_config(config)
 det2Config.MODEL.WEIGHTS = os.path.join(config['outputDir'], 'model_final.pth') ## model weights
-det2Config.MODEL.ROI_HEADS.SCORE_THRESH_TEST = args['testScoreThresh']  if 'testScoreThresh' in args else 0.7 ## set threshold for this model
+det2Config.MODEL.ROI_HEADS.SCORE_THRESH_TEST = args['testScoreThresh']  if 'testScoreThresh' in args else 0.05 ## set threshold for this model
 
 ## get dataset name so we can extract corresponding class label information
 trainDatasetName = det2Config.DATASETS.TRAIN[0]
@@ -65,22 +65,24 @@ print(inference_on_dataset(predictor.dp.model, val_loader, evaluator))
 ## remove files created for evaluation
 os.remove(os.path.join(config['outputDir'], 'coco_instances_results.json'))
 os.remove(os.path.join(config['outputDir'], 'instances_predictions.pth'))
+os.remove(os.path.join(config['outputDir'], 'fiftyone_val_coco_format.json'))
+os.remove(os.path.join(config['outputDir'], 'fiftyone_val_coco_format.json.lock'))
 
 ## Run inference
-ds_view = dataset.match_tags(datasetType)
-dataset_dicts = get_fiftyone_dicts(ds_view, class2Id)
-predictions = {}
-for d in tqdm(dataset_dicts):
-    img_w = d["width"]
-    img_h = d["height"]
-    img = cv2.imread(d["file_name"])
-    outputs = predictor.dp(img)
-    detections = convert_detectron2_to_fo(outputs, img_w, img_h, testDataset)
-    predictions[d["image_id"]] = detections
+# ds_view = dataset.match_tags(datasetType)
+# dataset_dicts = get_fiftyone_dicts(ds_view, class2Id)
+# predictions = {}
+# for d in tqdm(dataset_dicts):
+#     img_w = d["width"]
+#     img_h = d["height"]
+#     img = cv2.imread(d["file_name"])
+#     outputs = predictor.dp(img)
+#     detections = convert_detectron2_to_fo(outputs, img_w, img_h, testDataset)
+#     predictions[d["image_id"]] = detections
 
-dataset.set_values("predictions", predictions, key_field="id")
+# dataset.set_values("predictions", predictions, key_field="id")
 
-## launch fiftyone app
-session = fo.launch_app(dataset, remote=True)
-session.wait()
+# ## launch fiftyone app
+# session = fo.launch_app(dataset, remote=True)
+# session.wait()
 
