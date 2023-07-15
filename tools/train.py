@@ -32,10 +32,18 @@ args = get_args()
 assert args['outputDir'] is not None, "Output directory has to be specified!"
 
 if isdir(args['outputDir']):
-    ## if output directory already exists, we can't overwrite it
-    raise FileExistsError(f"Output directory {args['outputDir']} already exists! Please rerun with a different output directory.")
-    exit()
-
+    ## if output directory exists, we ask user if they want to overwrite it with a new or discontinue the script. 
+    toDelete = input(f"""Output directory {args['outputDir']} already exists! Do you want to overwrite it? (yes/no): """)
+    if toDelete == "yes":
+        print(f"Deleting directory {args['outputDir']}")
+        os.system(f"rm -rf {args['outputDir']}")
+    elif toDelete == "no":
+        print("Exiting script. Please rerun with a different output directory or delete existing directory!")
+        exit()
+    else:
+        print("Invalid input! Exiting script.")
+        exit()
+  
 ## override default config with new arguments
 config.update(args)
 
@@ -126,3 +134,4 @@ os.rename(os.path.join(config['outputDir'], bestModel), os.path.join(config['out
 ## remove coco style annotations
 os.remove(os.path.join(config['outputDir'], f'{eval_dataset}_coco_format.json'))
 os.remove(os.path.join(config['outputDir'], f'{eval_dataset}_coco_format.json.lock'))
+## 24.83
