@@ -17,7 +17,10 @@ defaultCfg = {
     'freeze_RPN':False, ## freeze RPN weights
     'freeze_backbone':False, ## freeze backbone weights
     'save_after_steps':100, ## save model after every 100 steps
-    'bbox_loss' : 'smooth_l1' ## smooth_l1, giou, diou, ciou
+    'bbox_loss' : 'smooth_l1', ## smooth_l1, giou, diou, ciou
+    'imageMinMaxSizes' : [800, 1333], ## min and max sizes of shortest side of image
+    'cropEnabled': False, ## crop images during training
+    'cropSize': [0.9, 0.9] ## crop size during training
 }
 
 defaultCfg = ConfigDict(defaultCfg)
