@@ -3,6 +3,13 @@
 from detectron2.config import get_cfg
 from detectron2 import model_zoo
 
+## borrow other variables from default config 
+def merge_default_config(config, expconfig):
+    for key, value in config.items():
+        if key not in expconfig:
+            expconfig[key] = value
+    return expconfig
+
 def build_detectron2_config(experiment_config):
     """
         Build detectron2 config from our config file
@@ -25,5 +32,10 @@ def build_detectron2_config(experiment_config):
     cfg.OUTPUT_DIR = experiment_config['outputDir']
     cfg.SOLVER.CHECKPOINT_PERIOD = experiment_config['save_after_steps']
     cfg.MODEL.ROI_HEADS.BBOX_REG_LOSS_TYPE = experiment_config['bbox_loss']
-
+    cfg.INPUT.MIN_SIZE_TRAIN = experiment_config['imageMinMaxSizes'][0]
+    cfg.INPUT.MAX_SIZE_TRAIN = experiment_config['imageMinMaxSizes'][1]
+    cfg.INPUT.MIN_SIZE_TEST = experiment_config['imageMinMaxSizes'][0]
+    cfg.INPUT.MAX_SIZE_TEST = experiment_config['imageMinMaxSizes'][1]
+    cfg.INPUT.CROP.ENABLED = experiment_config['cropEnabled']
+    cfg.INPUT.CROP.SIZE = experiment_config['cropSize']
     return cfg
