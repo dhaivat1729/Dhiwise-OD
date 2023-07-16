@@ -34,7 +34,7 @@ Dataset directory should be in the following format:
 ```
 
 ## Annotation file structure
-annotations.json should be in the following json format.
+`annotations.json` should be in the following json format.
 ```json
 [
     {
@@ -47,9 +47,11 @@ annotations.json should be in the following json format.
                 "x" : 100,
                 "y" : 100
                 "type": "classLabel"
-            }
+            },
             ...
         ]
+    },
+    {
         "screenName": "<image1>.jpg",
         "class" : "ImageClass",
         "children": [
@@ -59,7 +61,7 @@ annotations.json should be in the following json format.
                 "x" : 100,
                 "y" : 100
                 "type": "classLabel"
-            }
+            },
             .
             .
             .
@@ -87,7 +89,7 @@ Then run the following command.
 python3 tools/train.py --options --outputDir "path/to/experiment/directory" --dataDir "/path/to/dataset" --batchSize 4 --numSteps 45000 --save_after_steps 1500 --bbox_loss "giou" --annotationFile "annotations.json" --detectorName "COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml"
 ```
 
-In the above command, outputDir is created during training. So it need not exist before training. If that directory already exists, you will be prompted to delete it before prroceeding with training.
+In the above command, `outputDir` is created during training. So it need not exist before training. If that directory already exists, you will be prompted to delete it before prroceeding with training.
 Other options can be configured through command line arguments. For example, if you want to set the learning rate to 1e-3, you can pass `--learningRate "1e-3"` to the train command. 
 
 ## Evaluation
