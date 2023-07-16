@@ -11,7 +11,8 @@ from tqdm import tqdm
 from DWODLib.config import defaultCfg as config
 from DWODLib.utils import (get_args, 
                         load_json,
-                        build_detectron2_config)
+                        build_detectron2_config,
+                        merge_default_config,)
 
 from DWODLib.dataset import get_dataset_fiftyone, split_fiftyone_dataset, convert_fo_to_detectron2, get_fiftyone_dicts, convert_detectron2_to_fo
 from DWODLib.engine import Predictor
@@ -29,7 +30,8 @@ args = get_args()
 assert args['outputDir'] is not None, "Output directory has to be specified for inference!"
 
 ## override default config with new arguments
-config = load_json(os.path.join(args['outputDir'], 'experiment_config.json'))
+expconfig = load_json(os.path.join(args['outputDir'], 'experiment_config.json'))
+config = merge_default_config(config, expconfig)
 ## Build dataset in fiftyone format
 class2Id = load_json(os.path.join(config['outputDir'], 'class2Id.json')) ## save mapping from class to id
 dataset, _ = get_dataset_fiftyone(config)

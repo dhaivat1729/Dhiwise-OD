@@ -12,6 +12,7 @@ from DWODLib.config import defaultCfg as config
 from DWODLib.utils import (get_args, 
                         load_json,
                         build_detectron2_config,
+                        merge_default_config,
                         make_dir)
 
 from DWODLib.engine import Predictor
@@ -39,7 +40,9 @@ assert args['inputImagesDir'] is not None, "Input image directory has to be spec
 make_dir(args['outputImageDir'])
 
 ## override default config with new arguments
-config = load_json(os.path.join(args['modelPathDirectory'], 'experiment_config.json'))
+expconfig = load_json(os.path.join(args['modelPathDirectory'], 'experiment_config.json'))
+config = merge_default_config(config, expconfig)
+
 ## Build dataset in fiftyone format
 class2Id = load_json(os.path.join(config['outputDir'], 'class2Id.json')) ## save mapping from class to id
 
