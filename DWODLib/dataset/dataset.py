@@ -37,12 +37,13 @@ def build_fiftyone_from_converted_json(convertedJsons, filetypes, imageDir):
 
     ## assert that all convertedJsons have same keys
     assert len(convertedJsons) > 0, "No converted jsons found!"
-    assert all([convertedJsons[0].keys() == convertedJson.keys() for convertedJson in convertedJsons]), "All json files must have same number of images."
 
-    all_keys = convertedJsons[0].keys()
+    ## build set of keys for every json file and take intersection of all keys
+    keys_sets = [set(convertedJson.keys()) for convertedJson in convertedJsons]
+    common_keys = set.intersection(*keys_sets)
 
     ## iterate through all keys
-    for key in tqdm(all_keys):
+    for key in tqdm(common_keys):
             
         ## path of the image
         filePath = os.path.join(imageDir, key)
@@ -222,3 +223,39 @@ def convert_detectron2_to_fo(outputs, image_w, image_h, datasetName):
         detections.append(detection)
 
     return fo.Detections(detections=detections)
+
+
+def convert_fiftyone_to_dhiwise(dataset):
+    """
+        Convert fiftyone dataset to dhiwise format
+    """
+    ## get all samples
+    samples = dataset.to_dict()['samples']
+
+    ## new dictionary
+    dhiwise_format = []
+
+    for sample in tqdm(samples):
+        converted_sample = {}
+        converted_sample['screenName'] = os.path.basename(sample['filepath'])
+        converted_sample['class'] = sample['class'] if 'class' in sample else 'Mobile'
+        converted_sample['children'] = []
+
+        ## get image size
+        width = sample['width']
+        height = sample['height']
+
+        ## iterate through all detections
+        for detection in sample['detections']['detections']:
+            bbox = detection['bounding_box']
+            converted_bbox = {}
+            converted_bbox['x'] = bbox[0] * width
+            converted_bbox['y'] = bbox[1] * height
+            converted_bbox['width'] = bbox[2] * width
+            converted_bbox['height'] = bbox[3] * height
+            converted_bbox['type'] = detection['label']
+            converted_sample['children'].append(converted_bbox)
+
+        dhiwise_format.append(converted_sample)
+
+    return dhiwise_format
