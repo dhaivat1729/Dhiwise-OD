@@ -81,7 +81,7 @@ def build_fiftyone_from_converted_json(convertedJsons, filetypes, imageDir):
                     detections.append(detection)
                 
                 sample[filetype] = fo.Detections(detections=detections)
-                samples.append(sample)
+            samples.append(sample)
 
     dataset = fo.Dataset("Dhiwise object detection")
     dataset.add_samples(samples)
