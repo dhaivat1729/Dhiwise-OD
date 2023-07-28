@@ -21,7 +21,7 @@ from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 from detectron2.data import build_detection_test_loader
 import fiftyone as fo
 
-## usage python3 tools/evaluation.py --options --outputDir 'experiments/R50_fasterRCNNv3/' --dataSplit "val" --testScoreThresh 0.03
+## usage python3 tools/evaluation.py --options --outputDir 'experiments/R50_fasterRCNNv3/' --dataSplit "val" --testScoreThresh 0.03 --visualize "True"
 
 ## get arguments
 args = get_args()
@@ -70,21 +70,23 @@ os.remove(os.path.join(config['outputDir'], 'instances_predictions.pth'))
 os.remove(os.path.join(config['outputDir'], 'fiftyone_val_coco_format.json'))
 os.remove(os.path.join(config['outputDir'], 'fiftyone_val_coco_format.json.lock'))
 
-## Run inference
-# ds_view = dataset.match_tags(datasetType)
-# dataset_dicts = get_fiftyone_dicts(ds_view, class2Id)
-# predictions = {}
-# for d in tqdm(dataset_dicts):
-#     img_w = d["width"]
-#     img_h = d["height"]
-#     img = cv2.imread(d["file_name"])
-#     outputs = predictor.dp(img)
-#     detections = convert_detectron2_to_fo(outputs, img_w, img_h, testDataset)
-#     predictions[d["image_id"]] = detections
+# Run inference
 
-# dataset.set_values("predictions", predictions, key_field="id")
+if args['visualize']:
+   ds_view = dataset.match_tags(datasetType)
+   dataset_dicts = get_fiftyone_dicts(ds_view, class2Id)
+   predictions = {}
+   for d in tqdm(dataset_dicts):
+      img_w = d["width"]
+      img_h = d["height"]
+      img = cv2.imread(d["file_name"])
+      outputs = predictor.dp(img)
+      detections = convert_detectron2_to_fo(outputs, img_w, img_h, testDataset)
+      predictions[d["image_id"]] = detections
 
-# ## launch fiftyone app
-# session = fo.launch_app(dataset, remote=True)
-# session.wait()
+   dataset.set_values("predictions", predictions, key_field="id")
+
+   ## launch fiftyone app
+   session = fo.launch_app(dataset, remote=True)
+   session.wait()
 
