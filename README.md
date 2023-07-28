@@ -118,9 +118,10 @@ cd Dhiwise-OD
 source DhiwiseOD/bin/activate
 ```
 
-Now launch the command below to run inference on the images in the directory.
+Now launch the command below to run inference on the images in the directory. Last flag of this command will launch visualization of the results in fiftyone too. If you do not want to launch a fiftyone session, you can remove the last flag.
 
 ```python
 python3 tools/inference.py --options --inputImagesDir '/path/to/input/images' --modelPathDirectory '/path/to/experiment/directory' --outputImageDir '/path/to/output/images' --visualize "True"
 ```
+
 
