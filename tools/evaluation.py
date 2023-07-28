@@ -1,5 +1,5 @@
 """
-   Evaluation on a dataset using a trained model 
+	Evaluation on a dataset using a trained model 
 """
 
 
@@ -10,9 +10,9 @@ import os
 from tqdm import tqdm
 from DWODLib.config import defaultCfg as config
 from DWODLib.utils import (get_args, 
-                        load_json,
-                        build_detectron2_config,
-                        merge_default_config,)
+								load_json,
+								build_detectron2_config,
+								merge_default_config,)
 
 from DWODLib.dataset import get_dataset_fiftyone, split_fiftyone_dataset, convert_fo_to_detectron2, get_fiftyone_dicts, convert_detectron2_to_fo
 from DWODLib.engine import Predictor
@@ -73,20 +73,20 @@ os.remove(os.path.join(config['outputDir'], 'fiftyone_val_coco_format.json.lock'
 # Run inference
 
 if args['visualize']:
-   ds_view = dataset.match_tags(datasetType)
-   dataset_dicts = get_fiftyone_dicts(ds_view, class2Id)
-   predictions = {}
-   for d in tqdm(dataset_dicts):
-      img_w = d["width"]
-      img_h = d["height"]
-      img = cv2.imread(d["file_name"])
-      outputs = predictor.dp(img)
-      detections = convert_detectron2_to_fo(outputs, img_w, img_h, testDataset)
-      predictions[d["image_id"]] = detections
+	ds_view = dataset.match_tags(datasetType)
+	dataset_dicts = get_fiftyone_dicts(ds_view, class2Id)
+	predictions = {}
+	for d in tqdm(dataset_dicts):
+		img_w = d["width"]
+		img_h = d["height"]
+		img = cv2.imread(d["file_name"])
+		outputs = predictor.dp(img)
+		detections = convert_detectron2_to_fo(outputs, img_w, img_h, testDataset)
+		predictions[d["image_id"]] = detections
 
-   dataset.set_values("predictions", predictions, key_field="id")
+	dataset.set_values("predictions", predictions, key_field="id")
 
-   ## launch fiftyone app
-   session = fo.launch_app(dataset, remote=True)
-   session.wait()
+	## launch fiftyone app
+	session = fo.launch_app(dataset, remote=True)
+	session.wait()
 
