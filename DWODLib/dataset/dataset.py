@@ -12,7 +12,80 @@ from DWODLib.utils import (isfile,
 
 import fiftyone.utils.random as four
 
+def convert_json_from_list_to_dict(jsonFile):
+    """
+        Current json file is of type list, 
+        we convert it into a dictionary where key is image name.
+    """    
+    data = load_json(jsonFile)
 
+    ## new dictionary
+    converted_json = {}
+
+    for image in tqdm(data):
+        converted_json[image['screenName']] = image
+
+    return converted_json
+
+def build_fiftyone_from_converted_json(convertedJsons, filetypes, imageDir):
+    """
+        This takes list of converted jsons (which is output of convert_json_from_list_to_dict() function)
+    """
+
+    ## samples
+    samples = []
+
+    ## assert that all convertedJsons have same keys
+    assert len(convertedJsons) > 0, "No converted jsons found!"
+    assert all([convertedJsons[0].keys() == convertedJson.keys() for convertedJson in convertedJsons]), "All json files must have same number of images."
+
+    all_keys = convertedJsons[0].keys()
+
+    ## iterate through all keys
+    for key in tqdm(all_keys):
+            
+        ## path of the image
+        filePath = os.path.join(imageDir, key)
+
+        ## If image is a file, then only we register its annotations
+        if isfile(filePath):
+            
+            ## create fiftyone  sample for this image
+            sample = fo.Sample(filepath=filePath)
+
+            ## load file anmd get size
+            img = Image.open(filePath)
+            width, height = img.size
+
+            ## storing sample size
+            sample['size'] = {'width':width, 'height':height}
+
+            ## iterate through all convertedJsons
+            for convertedJson, filetype in zip(convertedJsons, filetypes):
+
+                ## get image class
+                sample['class'] = convertedJson[key]['class']
+                
+                detections = []
+                ## normalize bounding boxes
+                for bbox in convertedJson[key]['children']:
+
+                    ## getting normalized bounding box
+                    bbox['x'] = bbox['x'] / width
+                    bbox['y'] = bbox['y'] / height
+                    bbox['width'] = bbox['width'] / width
+                    bbox['height'] = bbox['height'] / height
+
+                    ## building fiftyone detection
+                    detection = fo.Detection(label=bbox['type'], bounding_box=[bbox['x'], bbox['y'], bbox['width'], bbox['height']])
+                    detections.append(detection)
+                
+                sample[filetype] = fo.Detections(detections=detections)
+                samples.append(sample)
+
+    dataset = fo.Dataset("Dhiwise object detection")
+    dataset.add_samples(samples)
+    return dataset
 
 def get_dataset_fiftyone(config):
     ## base directory and annotation file
