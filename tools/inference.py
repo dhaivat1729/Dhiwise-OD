@@ -10,11 +10,13 @@ import os
 from tqdm import tqdm
 from DWODLib.config import defaultCfg as config
 from DWODLib.utils import (get_args, 
-                        load_json,
-                        build_detectron2_config,
-                        merge_default_config,
-                        make_dir)
+						load_json,
+						build_detectron2_config,
+						merge_default_config,
+						make_dir,
+						save_json)
 
+from DWODLib.dataset import convert_detectron2_to_fo, convert_fiftyone_to_dhiwise
 from DWODLib.engine import Predictor
 import cv2
 import glob
@@ -22,7 +24,7 @@ from detectron2.data import MetadataCatalog
 from detectron2.utils.visualizer import Visualizer
 import fiftyone as fo
 
-## usage: python3 tools/inference.py --options --inputImagesDir '/path/to/input/images' --modelPathDirectory '/path/to/model/directory' --outputImageDir '/path/to/output/images' --visualize "True"
+## usage: python3 tools/inference.py --options --inputImagesDir '/path/to/input/images' --modelPathDirectory '/path/to/model/directory' --outputImageDir '/path/to/output/images' --visualize "True" --outputResultsFile "/path/to/output/results/file.json"
 
 ## get arguments
 args = get_args()
@@ -65,30 +67,48 @@ MetadataCatalog.get(det2Config.DATASETS.TRAIN[0]).set(thing_classes=list(class2I
 
 ## output images
 outputImages = []
-
+samples = []
 ## run inference on each image
 for image in tqdm(images):
-   imageName = os.path.basename(image) ## name of the image
-   img = cv2.imread(image) ## read image
 
-   ## output image path
-   outputImagePath = os.path.join(args['outputImageDir'], imageName)
+	sample = fo.Sample(filepath=image)
 
-   ## run inference
-   outputs = predictor.dp(img)
+	imageName = os.path.basename(image) ## name of the image
+	img = cv2.imread(image) ## read image
 
-   ## visualize
-   v = Visualizer(img[:, :, ::-1], metadata=MetadataCatalog.get(det2Config.DATASETS.TRAIN[0]), scale=1.0)
-   v = v.draw_instance_predictions(outputs["instances"].to("cpu"))
+	## output image path
+	outputImagePath = os.path.join(args['outputImageDir'], imageName)
 
-   ## save image
-   cv2.imwrite(outputImagePath, v.get_image()[:, :, ::-1])
+	## run inference
+	outputs = predictor.dp(img)
 
-   ## output image
-   outputImages.append(fo.Sample(filepath=outputImagePath))
+	## visualize
+	v = Visualizer(img[:, :, ::-1], metadata=MetadataCatalog.get(det2Config.DATASETS.TRAIN[0]), scale=1.0)
+	v = v.draw_instance_predictions(outputs["instances"].to("cpu"))
+
+	image_h, image_w, _ = img.shape
+	sample['detections'] = convert_detectron2_to_fo(outputs, image_w, image_h, det2Config.DATASETS.TRAIN[0])
+	sample['filepath'] = outputImagePath
+	## iamge height and width
+	sample['height'] = image_h
+	sample['width'] = image_w
+	samples.append(sample)
+
+	## save image
+	cv2.imwrite(outputImagePath, v.get_image()[:, :, ::-1])
+
+## fiftyone dataset
+dataset = fo.Dataset("Dhiwise object detection")
+dataset.add_samples(samples)
+
+## convert fiftyone to dhiwise format
+dhiwiseFormat = convert_fiftyone_to_dhiwise(dataset)
+
+## save dhiwise format
+if args['outputResultsFile'] is not None:
+	save_json(dhiwiseFormat, args['outputResultsFile'])
 
 if args['visualize']:
-   ## launch fiftyone app
-   dataset = fo.Dataset(samples=outputImages)
-   session = fo.launch_app(dataset)
-   session.wait()
+	## launch fiftyone app
+	session = fo.launch_app(dataset)
+	session.wait()
